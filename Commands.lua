@@ -33,6 +33,8 @@ local function PrintHelp()
     print("/coa formula <spellID> - Solve the spell damage formula")
     print("/coa dump <spellID> - Show raw stored observations")
     print("/coa sessions - Show active cast sessions")
+    print("/coa sessiondump <spellID> - Show stored cast sessions")
+    print("/coa plan <spellID> - Recommend the next controlled experiment")
     print("/coa experiment - Show the active experiment")
     print("/coa queue - Show cast snapshot queue")
     print("/coa debug - Toggle debug output")
@@ -759,6 +761,243 @@ function CoA:PrintCastSessions()
     print("----------------------------------------")
 end
 
+
+function CoA:PrintStoredSessionDump(spellID)
+    if type(self.GetStoredCastSessions) ~= "function" then
+        PrintError("Persistent cast sessions are unavailable.")
+        return
+    end
+
+    local sessions =
+        self:GetStoredCastSessions(spellID)
+        or {}
+
+    local spell = GetSpellRecord(spellID)
+
+    PrintHeader(
+        tostring(
+            spell
+            and spell.name
+            or ("Spell " .. tostring(spellID))
+        )
+        .. " Stored Sessions"
+    )
+
+    PrintValue(
+        "Stored Sessions",
+        #sessions
+    )
+
+    if #sessions == 0 then
+        return
+    end
+
+    local firstIndex =
+        math.max(
+            1,
+            #sessions - 19
+        )
+
+    for index = firstIndex, #sessions do
+        local session =
+            sessions[index]
+
+        local snapshot =
+            session.snapshot or {}
+
+        print("----------------------------------------")
+
+        PrintValue(
+            "Session",
+            session.id or index
+        )
+
+        PrintValue(
+            "Spell",
+            session.spellName
+            or session.spellID
+            or "Unknown"
+        )
+
+        PrintValue(
+            "Total Damage",
+            session.totalDamage or 0
+        )
+
+        PrintValue(
+            "Direct Hits",
+            session.directHits or 0
+        )
+
+        PrintValue(
+            "Triggered Hits",
+            session.triggeredHits or 0
+        )
+
+        PrintValue(
+            "Damage Events",
+            #(session.damageEvents or {})
+        )
+
+        PrintValue(
+            "Match Method",
+            session.matchMethod
+        )
+
+        PrintValue(
+            "Attack Power",
+            snapshot.attackPower
+        )
+
+        PrintValue(
+            "Ranged Attack Power",
+            snapshot.rangedAttackPower
+        )
+
+        PrintValue(
+            "Spell Power",
+            snapshot.spellPower
+        )
+
+        PrintValue(
+            "Strength",
+            snapshot.strength
+        )
+
+        PrintValue(
+            "Agility",
+            snapshot.agility
+        )
+
+        PrintValue(
+            "Intellect",
+            snapshot.intellect
+        )
+
+        PrintValue(
+            "Weapon Min",
+            snapshot.weaponMin
+        )
+
+        PrintValue(
+            "Weapon Max",
+            snapshot.weaponMax
+        )
+
+        local weaponAverage =
+            (
+                (tonumber(snapshot.weaponMin) or 0)
+                + (tonumber(snapshot.weaponMax) or 0)
+            ) / 2
+
+        PrintValue(
+            "Weapon Average",
+            weaponAverage
+        )
+
+        local firstEvent =
+            session.damageEvents
+            and session.damageEvents[1]
+            or {}
+
+        PrintValue(
+            "Target Name",
+            firstEvent.targetName
+        )
+
+        PrintValue(
+            "Target Level",
+            firstEvent.targetLevel
+        )
+
+        for eventIndex, event in ipairs(
+            session.damageEvents or {}
+        ) do
+            print(string.format(
+                "  %d. %s: %s%s [%s]",
+                eventIndex,
+                tostring(
+                    event.spellName
+                    or event.spellID
+                    or "Unknown"
+                ),
+                tostring(event.damage or 0),
+                event.critical
+                    and " CRIT"
+                    or "",
+                tostring(
+                    event.snapshotSource
+                    or "unknown"
+                )
+            ))
+        end
+    end
+
+    print("----------------------------------------")
+end
+
+
+function CoA:PrintExperimentPlan(spellID)
+    if type(self.BuildExperimentPlan) ~= "function" then
+        PrintError("Experiment planner is unavailable.")
+        return
+    end
+
+    local plan, errorMessage =
+        self:BuildExperimentPlan(spellID)
+
+    if not plan then
+        PrintError(
+            errorMessage
+            or "Unable to build an experiment plan."
+        )
+        return
+    end
+
+    PrintHeader(
+        tostring(plan.spellName)
+        .. " Experiment Plan"
+    )
+
+    PrintValue(
+        "Clean Stored Sessions",
+        plan.sessions
+    )
+
+    for _, predictor in ipairs(
+        plan.predictors or {}
+    ) do
+        local status =
+            predictor.varies
+            and "varies"
+            or "no variation"
+
+        print(string.format(
+            "%s: %.4f -> %.4f (%d values, %s)",
+            predictor.label,
+            predictor.minimum or 0,
+            predictor.maximum or 0,
+            predictor.distinctCount or 0,
+            status
+        ))
+    end
+
+    print("----------------------------------------")
+
+    if plan.recommended then
+        PrintValue(
+            "Recommended Change",
+            plan.recommended.label
+        )
+    end
+
+    print(plan.instruction)
+
+    print(
+        "Keep target, target level, talents, buffs, and all other predictors unchanged."
+    )
+end
+
 function CoA:PrintExperiment()
     if not self.Experiment
         or type(self.Experiment.GetCurrent)
@@ -931,6 +1170,30 @@ function CoA:RegisterCommands()
 
         elseif command == "sessions" then
             CoA:PrintCastSessions()
+
+        elseif command == "sessiondump" then
+            local spellID = tonumber(argument)
+
+            if not spellID then
+                PrintError(
+                    "Usage: /coa sessiondump <spellID>"
+                )
+                return
+            end
+
+            CoA:PrintStoredSessionDump(spellID)
+
+        elseif command == "plan" then
+            local spellID = tonumber(argument)
+
+            if not spellID then
+                PrintError(
+                    "Usage: /coa plan <spellID>"
+                )
+                return
+            end
+
+            CoA:PrintExperimentPlan(spellID)
 
         elseif command == "experiment" then
             CoA:PrintExperiment()

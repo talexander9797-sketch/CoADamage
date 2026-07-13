@@ -13,5 +13,7 @@ CastSession.lua
 CombatLog.lua
 Events.lua
 Analysis.lua
+Formula.lua
+Planner.lua
 Advisor.lua
 Commands.lua
