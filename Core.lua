@@ -1,5 +1,5 @@
 CoA = CoA or {}
-CoA.Version = "0.5.0"
+CoA.Version = "0.8.0"
 CoA.debug = false
 CoA.MAX_OBSERVATIONS_PER_SPELL = 500
 CoA.MAX_EXPERIMENTS = 200
