@@ -1,0 +1,14 @@
+## Interface: 30300
+## Title: CoADamage
+## Notes: Damage Analysis for Conquest of Azeroth
+## Author: Travis & ChatGPT
+## Version: 0.0.4
+## SavedVariables: CoADamageDB
+
+Core.lua
+Database.lua
+Stats.lua
+Analysis.lua
+Events.lua
+CombatLog.lua
+Commands.lua
