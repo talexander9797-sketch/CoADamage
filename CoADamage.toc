@@ -12,4 +12,5 @@ CastQueue.lua
 CombatLog.lua
 Events.lua
 Analysis.lua
+Advisor.lua
 Commands.lua
