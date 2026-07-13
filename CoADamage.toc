@@ -1,7 +1,7 @@
 ## Interface: 30300
 ## Title: CoADamage
 ## Notes: Theorycrafting for Conquest of Azeroth
-## Version: 0.0.4
+## Version: 0.8.0
 ## Author: Travis Hensley
 ## SavedVariables: CoADamageDB
 
@@ -9,6 +9,7 @@ Core.lua
 Database.lua
 Stats.lua
 CastQueue.lua
+CastSession.lua
 CombatLog.lua
 Events.lua
 Analysis.lua
