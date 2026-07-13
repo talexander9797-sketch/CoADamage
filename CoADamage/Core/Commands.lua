@@ -178,19 +178,37 @@ SlashCmdList.COADAMAGE = function(msg)
         end
         PrintAnalysis(id)
 
+    elseif command == "experiment" then
+        if not CoA.Experiment then
+            print("|cffff3333CoADamage: Experiment.lua did not load.|r")
+            return
+        end
+        local experiment = CoA.Experiment:GetCurrent()
+        if not experiment then
+            print("No active experiment. Deal damage to begin one.")
+        else
+            print(string.format("|cff33ff99Current experiment #%d|r", experiment.id))
+            print("  Reason: " .. tostring(experiment.reason or "Unknown"))
+            print("  Observations: " .. tostring(#(experiment.observations or {})))
+        end
+
     elseif command == "debug" then
         CoA.debug = not CoA.debug
         print("|cff33ff99CoADamage debug:|r " .. (CoA.debug and "ON" or "OFF"))
 
     elseif command == "clear" then
         CoADamageDB.spells = {}
-        print("|cff33ff99CoADamage:|r recorded spell data cleared.")
+        CoADamageDB.experiments = {}
+        CoADamageDB.nextExperimentID = 1
+        if CoA.Experiment then CoA.Experiment.current = nil end
+        print("|cff33ff99CoADamage:|r recorded spell and experiment data cleared.")
 
     else
         print("|cff33ff99CoADamage commands:|r")
         print("/coa stats - summarize recorded spells")
         print("/coa inspect <spellID> - show recent hits and stat snapshots")
         print("/coa analyze <spellID> - summarize variation and controlled scaling evidence")
+        print("/coa experiment - show the active experiment")
         print("/coa debug - toggle one-line event logging")
         print("/coa clear - erase recorded data")
     end

@@ -1,7 +1,9 @@
 function CoA:InitializeDatabase()
     CoADamageDB = CoADamageDB or {}
-    CoADamageDB.version = 4
+    CoADamageDB.version = 5
     CoADamageDB.spells = CoADamageDB.spells or {}
+    CoADamageDB.experiments = CoADamageDB.experiments or {}
+    CoADamageDB.nextExperimentID = CoADamageDB.nextExperimentID or 1
 end
 
 function CoA:GetSpell(id)

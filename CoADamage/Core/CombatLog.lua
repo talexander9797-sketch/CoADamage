@@ -73,6 +73,8 @@ function CoA:ParseCombatLog(...)
     local observation = {
         timestamp = timestamp or time(),
         eventType = eventType,
+        spellID = spellId,
+        spellName = spell.name,
         damage = amount,
         critical = critical,
         overkill = overkill or 0,
@@ -85,6 +87,10 @@ function CoA:ParseCombatLog(...)
         player = snapshot
     }
     self:AddObservation(spell, observation)
+
+    if self.Experiment and type(self.Experiment.AddObservation) == "function" then
+        self.Experiment:AddObservation(spellId, observation)
+    end
 
     if self.debug then
         print(string.format(
